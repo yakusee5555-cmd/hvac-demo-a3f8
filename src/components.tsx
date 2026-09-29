@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Link, NavLink, useLocation } from "react-router-dom";
 
 /* ---------------- data ---------------- */
 
@@ -18,34 +19,38 @@ export const BUSINESS = {
 };
 
 export const NAV = [
-  { label: "Home", href: "#home" },
-  { label: "About", href: "#about" },
-  { label: "Services", href: "#services" },
-  { label: "Blog", href: "#blog" },
-  { label: "Contact", href: "#contact" },
+  { label: "Home", to: "/" },
+  { label: "About", to: "/about" },
+  { label: "Services", to: "/services" },
+  { label: "FAQ", to: "/faq" },
+  { label: "Blog", to: "/blog" },
+  { label: "Contact", to: "/contact" },
 ];
 
 export const SERVICES = [
   {
+    slug: "commercial-hvac",
     img: "/img/svc-commercial.jpg",
     title: "Commercial HVAC Services",
     desc: "From small offices to large facilities, we provide complete HVAC solutions for business. Our team ensures reliable performance and minimal downtime for your commercial space.",
+    points: ["Rooftop units & package systems", "Preventive maintenance contracts", "Tenant improvement build-outs", "24/7 priority service for businesses"],
     tags: ["#HVACServices", "#CommercialHVAC"],
-    highlight: true,
   },
   {
+    slug: "heating-installation-repair",
     img: "/img/svc-heating.jpg",
     title: "Heating Installation & Repair",
     desc: "Stay warm during the cold months with our professional heating services. We install, repair, and maintain furnaces and heating systems to ensure your home stays cozy.",
+    points: ["Furnace & boiler repair", "High-efficiency system installs", "Heat pump services", "Carbon monoxide safety checks"],
     tags: ["#HVACServices", "#HeatingAndCooling"],
-    highlight: false,
   },
   {
+    slug: "hvac-maintenance",
     img: "/img/svc-maintenance.jpg",
     title: "HVAC Maintenance",
     desc: "Prevent costly breakdowns and extend your system lifespan with routine maintenance plans. Our expert technicians ensure your HVAC system operates efficiently all year round.",
+    points: ["21-point precision tune-ups", "Filter & coil cleaning", "Refrigerant level checks", "Priority scheduling for members"],
     tags: ["#HVACServices", "#HVACTechnicians"],
-    highlight: false,
   },
 ];
 
@@ -177,11 +182,27 @@ export function useRevealRoot() {
   return ref;
 }
 
+export function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+}
+
+export function Check({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={`h-5 w-5 shrink-0 fill-none stroke-brand ${className}`} strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M20 6 9 17l-5-5" />
+    </svg>
+  );
+}
+
 /* ---------------- logo / header ---------------- */
 
 export function Logo({ light = false }: { light?: boolean }) {
   return (
-    <a href="#home" className="flex items-center gap-2">
+    <Link to="/" className="flex items-center gap-2">
       <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-navy">
         <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="#FFC400" strokeWidth="2.4" strokeLinecap="round">
           <path d="M12 3v10" />
@@ -192,7 +213,7 @@ export function Logo({ light = false }: { light?: boolean }) {
       <span className={`font-display text-2xl font-extrabold tracking-tight ${light ? "text-white" : "text-navy"}`}>
         Plumbera
       </span>
-    </a>
+    </Link>
   );
 }
 
@@ -204,18 +225,15 @@ export function Header() {
         <Logo />
         <nav className="hidden items-center gap-7 lg:flex">
           {NAV.map((n) => (
-            <a
+            <NavLink
               key={n.label}
-              href={n.href}
-              className="flex items-center gap-1 text-[15px] font-semibold text-ink transition hover:text-navy"
+              to={n.to}
+              className={({ isActive }) =>
+                `text-[15px] font-semibold transition hover:text-navy ${isActive ? "text-navy underline decoration-brand decoration-2 underline-offset-8" : "text-ink"}`
+              }
             >
               {n.label}
-              {n.label === "Services" && (
-                <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 fill-none stroke-current" strokeWidth="2.5">
-                  <path d="m6 9 6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              )}
-            </a>
+            </NavLink>
           ))}
         </nav>
         <div className="hidden items-center gap-3 md:flex">
@@ -245,14 +263,16 @@ export function Header() {
       {open && (
         <nav className="border-t border-navy/10 bg-white px-4 py-3 lg:hidden">
           {NAV.map((n) => (
-            <a
+            <NavLink
               key={n.label}
-              href={n.href}
+              to={n.to}
               onClick={() => setOpen(false)}
-              className="block rounded-xl px-3 py-3 font-display text-sm font-bold uppercase tracking-widest text-navy hover:bg-mist"
+              className={({ isActive }) =>
+                `block rounded-xl px-3 py-3 font-display text-sm font-bold uppercase tracking-widest hover:bg-mist ${isActive ? "text-navy bg-mist" : "text-ink"}`
+              }
             >
               {n.label}
-            </a>
+            </NavLink>
           ))}
           <a
             href={BUSINESS.phoneHref}
@@ -278,12 +298,134 @@ export function MobileCallBar() {
         </svg>
         Call Now
       </a>
-      <a
-        href="#contact"
+      <Link
+        to="/contact"
         className="flex min-h-[60px] items-center justify-center bg-brand font-display text-sm font-extrabold uppercase tracking-widest text-navy"
       >
         Free Quote
-      </a>
+      </Link>
+    </div>
+  );
+}
+
+/* ---------------- page hero / CTA band ---------------- */
+
+export function PageHero({ eyebrow, title, sub }: { eyebrow: string; title: React.ReactNode; sub?: string }) {
+  return (
+    <section className="relative overflow-hidden bg-navy-deep">
+      <FanWatermark className="-right-16 -top-10 h-72 w-72 !text-white/[0.05]" />
+      <div className="relative mx-auto max-w-7xl px-4 py-14 md:px-8 md:py-20">
+        <Pill dark>{eyebrow}</Pill>
+        <h1 className="mt-4 max-w-3xl font-display text-3xl font-extrabold uppercase leading-tight tracking-tight text-white md:text-5xl">
+          {title}
+        </h1>
+        {sub && <p className="mt-4 max-w-2xl text-[15px] leading-relaxed text-white/70">{sub}</p>}
+      </div>
+    </section>
+  );
+}
+
+export function CtaBand() {
+  return (
+    <section className="relative overflow-hidden bg-white">
+      <FanWatermark className="-left-10 top-6 h-52 w-52" />
+      <FanWatermark className="-right-8 bottom-0 h-64 w-64" />
+      <div className="relative mx-auto max-w-4xl px-4 py-16 text-center md:px-8 md:py-24">
+        <h2 className="reveal font-display text-3xl font-extrabold uppercase leading-tight tracking-tight text-navy md:text-5xl">
+          Need Fast HVAC Service? We&rsquo;re Ready 24/7!
+        </h2>
+        <p className="reveal mx-auto mt-4 max-w-2xl text-[15px] leading-relaxed text-muted">
+          Don&rsquo;t let a broken AC or heater ruin your comfort. Our emergency technicians are
+          available day and night to get your system running again. Call now for immediate assistance!
+        </p>
+        <div className="reveal mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+          <a
+            href={BUSINESS.phoneHref}
+            className="inline-flex min-h-[54px] items-center rounded-full bg-brand px-9 font-display text-sm font-extrabold uppercase tracking-widest text-navy shadow-[0_10px_28px_rgba(255,196,0,0.4)] transition hover:-translate-y-0.5 hover:bg-brand-dark"
+          >
+            Call Now
+          </a>
+          <a
+            href={BUSINESS.phoneHref}
+            className="inline-flex min-h-[54px] items-center gap-2 rounded-full bg-[#1256d6] px-9 font-display text-sm font-extrabold uppercase tracking-widest text-white transition hover:-translate-y-0.5"
+          >
+            <svg viewBox="0 0 24 24" className="h-4 w-4 fill-none stroke-current" strokeWidth="2.2">
+              <path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.13.96.36 1.9.7 2.8a2 2 0 0 1-.45 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.45c.9.34 1.84.57 2.8.7A2 2 0 0 1 22 16.9z" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            {BUSINESS.phone}
+          </a>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ---------------- contact form ---------------- */
+
+export function ContactForm({ compact = false }: { compact?: boolean }) {
+  const [form, setForm] = useState({ name: "", phone: "", email: "", service: "AC Repair", message: "" });
+  const [sent, setSent] = useState(false);
+  const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
+    setForm({ ...form, [k]: e.target.value });
+  const input =
+    "w-full rounded-2xl border border-navy/15 bg-white px-5 py-4 text-[15px] text-ink placeholder:text-muted/60 outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/30";
+  if (sent) {
+    return (
+      <div className="rounded-3xl bg-navy p-10 text-center">
+        <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-brand">
+          <svg viewBox="0 0 24 24" className="h-8 w-8 fill-none stroke-navy" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M20 6 9 17l-5-5" />
+          </svg>
+        </span>
+        <h3 className="mt-5 font-display text-2xl font-extrabold uppercase text-white">Request received!</h3>
+        <p className="mx-auto mt-2 max-w-sm text-white/70">
+          Thanks, {form.name.split(" ")[0] || "friend"}. We&rsquo;ll call you back shortly to schedule your service.
+        </p>
+      </div>
+    );
+  }
+  return (
+    <form
+      onSubmit={(e) => { e.preventDefault(); setSent(true); }}
+      className={`rounded-3xl border border-navy/10 bg-white p-6 shadow-[0_16px_50px_rgba(10,31,77,0.10)] md:p-8 ${compact ? "" : ""}`}
+    >
+      <div className="grid gap-4 sm:grid-cols-2">
+        <input required placeholder="Full name" value={form.name} onChange={set("name")} className={input} />
+        <input required placeholder="Phone number" type="tel" value={form.phone} onChange={set("phone")} className={input} />
+        <input placeholder="Email (optional)" type="email" value={form.email} onChange={set("email")} className={`${input} sm:col-span-2`} />
+        <select value={form.service} onChange={set("service")} className={`${input} sm:col-span-2`} aria-label="Service needed">
+          {["AC Repair", "Heating Repair", "New Installation", "Maintenance Plan", "Commercial Service", "Something else"].map((s) => (
+            <option key={s}>{s}</option>
+          ))}
+        </select>
+        <textarea
+          placeholder="Tell us what's going on…"
+          rows={4}
+          value={form.message}
+          onChange={set("message")}
+          className={`${input} resize-none sm:col-span-2`}
+        />
+      </div>
+      <button
+        type="submit"
+        className="mt-5 flex min-h-[56px] w-full items-center justify-center rounded-full bg-brand font-display text-sm font-extrabold uppercase tracking-widest text-navy shadow-[0_10px_28px_rgba(255,196,0,0.4)] transition hover:bg-brand-dark"
+      >
+        Request Service
+      </button>
+      <p className="mt-3 text-center text-xs text-muted">Prefer to talk? Call <a href={BUSINESS.phoneHref} className="font-bold text-navy">{BUSINESS.phone}</a> — 24/7.</p>
+    </form>
+  );
+}
+
+export function MapEmbed() {
+  return (
+    <div className="overflow-hidden rounded-3xl border border-navy/10 shadow-[0_16px_50px_rgba(10,31,77,0.10)]">
+      <iframe
+        title="Plumbera location map"
+        src={`https://www.google.com/maps?q=${encodeURIComponent(BUSINESS.mapQuery)}&output=embed`}
+        className="h-[320px] w-full border-0 md:h-[420px]"
+        loading="lazy"
+      />
     </div>
   );
 }
@@ -293,7 +435,7 @@ export function MobileCallBar() {
 export function Footer() {
   const insta = ["/img/why-1.jpg", "/img/svc-heating.jpg", "/img/blog-1.jpg", "/img/why-2.jpg", "/img/svc-maintenance.jpg", "/img/blog-2.jpg"];
   return (
-    <footer id="contact" className="bg-mist">
+    <footer className="bg-mist">
       <div className="mx-auto max-w-7xl px-4 py-14 md:px-8 md:py-20">
         <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-4">
           <div>
@@ -311,18 +453,11 @@ export function Footer() {
           <div>
             <h3 className="font-display text-sm font-extrabold uppercase tracking-widest text-navy">Quick Links</h3>
             <ul className="mt-4 space-y-2.5">
-              {[
-                { l: "Home", h: "#home" },
-                { l: "Services", h: "#services" },
-                { l: "About Us", h: "#about" },
-                { l: "Our Blog", h: "#blog" },
-                { l: "Contact Us", h: "#contact" },
-                { l: "FAQs", h: "#faq" },
-              ].map((q) => (
-                <li key={q.l}>
-                  <a href={q.h} className="text-[15px] font-medium text-muted transition hover:text-navy">
-                    {q.l}
-                  </a>
+              {NAV.map((q) => (
+                <li key={q.label}>
+                  <Link to={q.to} className="text-[15px] font-medium text-muted transition hover:text-navy">
+                    {q.label}
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -362,9 +497,9 @@ export function Footer() {
         <div className="mt-12 flex flex-col items-center justify-between gap-3 border-t border-navy/10 pt-6 text-sm text-muted md:flex-row">
           <p>© Copyright 2026 Plumbera. All Right Reserved</p>
           <p className="flex gap-4">
-            <a href="#home" className="hover:text-navy">Privacy Policy</a>
+            <Link to="/" className="hover:text-navy">Privacy Policy</Link>
             <span>|</span>
-            <a href="#home" className="hover:text-navy">Terms Of Condition</a>
+            <Link to="/" className="hover:text-navy">Terms Of Condition</Link>
           </p>
         </div>
       </div>
